@@ -1,0 +1,16 @@
+servos = 0 á 180
+
+Ponto 0{
+
+	R1 =  110
+	L1 = 100
+	outros = 90
+
+}
+
+r2 > 90 = traz
+r3 > 90 = frente
+r4 > 90 = fora pra baixo
+l2 > 90 = frente
+l3 > 90 = traz
+l4 < 90 fora pra baixo
