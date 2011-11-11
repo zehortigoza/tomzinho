@@ -1,22 +1,20 @@
 #include <Servo.h>
 
-#define MAX 10
-
 char incomingChar;
-char command[MAX];
-int i = 0;
+char side;
+int servoNumber = 0;
+char posText[3];
+int iPosText = 0;
+int pos = 0;
 
 Servo R1;
 Servo R2;
 Servo R3;
 Servo R4;
-
 Servo L1;
 Servo L2;
 Servo L3;
 Servo L4;
-
-int pos = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -41,85 +39,110 @@ void setup() {
   L4.write(90);
 }
 
-void loop(){
+void loop() {  
   if (Serial.available() > 0) {
-    incomingChar = Serial.read();
-    if(incomingChar == ' ' || incomingChar == '.') {
-      process(command,i);
-      for(int z = 0; i < z; z++) {
-        command[z] = 0;
+    incomingChar = Serial.read();    
+    if(incomingChar >= '0' && incomingChar <= '9') {//is a number
+      if(servoNumber > 0) {
+        if(iPosText < 3) {
+          posText[iPosText] = incomingChar;
+          iPosText++;
+        } else {
+          pos = atoi(posText);
+          checkAndExecute();
+          emptyVars();
+        }        
+      } else {
+        servoNumber = incomingChar - '0';//convert char to int
       }
-      i = 0;
     } else {
-      command[i] = incomingChar;
-      i++;
+      if(incomingChar == ' ' || incomingChar == '.') {
+        pos = atoi(posText);
+        checkAndExecute();
+        emptyVars();
+      } else {
+        emptyVars();
+        side = toupper(incomingChar);
+      }
     }
   }
 }
 
-void process(char line[],int t) {  
-  char charpos[MAX-2];
-  for(int z = 2 ; z < t; z++){
-    charpos[z-2] = line[z];
-  }  
-  int pos = atoi(charpos);
-  
-  int servonum = 0;
-  switch(line[1]){
-    case '1':
-      servonum = 1;
-      break;
-    case '2':
-      servonum = 2;
-      break;
-    case '3':
-      servonum = 3;
-      break;
-    case '4':
-      servonum = 4;
-      break;
-  }
-  
-  if(! (servonum > 0 && servonum < 5)) {
-    return;
-  } else {
-    Serial.print(line[0]);
-    Serial.print(servonum);
-    Serial.print("=");
-    Serial.println(pos);
-  }
-  
-  if(line[0] == 'R' || line[0] == 'r') {
-    switch(servonum) {
+void process() {
+  if(side == 'R'){
+    switch(servoNumber){
       case 1:
         R1.write(pos);
+        Serial.print("R1 pos=");
+        Serial.println(pos);
         break;
       case 2:
         R2.write(pos);
+        Serial.print("R2 pos=");
+        Serial.println(pos);
         break;
       case 3:
         R3.write(pos);
+        Serial.print("R3 pos=");
+        Serial.println(pos);
         break;
       case 4:
         R4.write(pos);
+        Serial.print("R4 pos=");
+        Serial.println(pos);
         break;
+      default:
+        Serial.println("Unknown servo");
     }
   } else {
-    if(line[0] == 'L' || line[0] == 'l') {
-      switch(servonum) {
+    if(side == 'L') {
+      switch(servoNumber){
         case 1:
           L1.write(pos);
+          Serial.print("L1 pos=");
+          Serial.println(pos);
           break;
         case 2:
           L2.write(pos);
+          Serial.print("L2 pos=");
+          Serial.println(pos);
           break;
         case 3:
           L3.write(pos);
+          Serial.print("L3 pos=");
+          Serial.println(pos);
           break;
         case 4:
           L4.write(pos);
+          Serial.print("L4 pos=");
+          Serial.println(pos);
           break;
+        default:
+          Serial.println("Unknown servo");
       }
+    } else {
+      Serial.println("Unknown side");
     }
+  }
+}
+
+void emptyVars() {
+  side = ' ';
+  servoNumber = 0;
+  iPosText = 0;
+  posText[0] = 0;
+  posText[1] = 0;
+  posText[2] = 0;
+  pos = 0;
+}
+
+void checkAndExecute() {
+  if(servoNumber >= 1 && servoNumber <= 4 && pos >= 0 && pos <= 180 && (side == 'R' || side == 'L')) {
+    process();
+  } else {
+    Serial.print("Invalid arguments: ");
+    Serial.print(side);
+    Serial.print(servoNumber);
+    Serial.println(pos);
   }
 }
