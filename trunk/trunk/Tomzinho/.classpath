@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="main/src/java"/>
 	<classpathentry kind="src" path="main/src/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="C:/Tools-Dev/Frameworks/maven-1.0.2_REPO/.maven/repository/jgoodies/jars/forms-1.0.5.jar"/>
+	<classpathentry kind="lib" path="lib/forms-1.0.5.jar"/>
+	<classpathentry kind="lib" path="lib/rxtx-2.1-7-bins-r2/RXTXcomm.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

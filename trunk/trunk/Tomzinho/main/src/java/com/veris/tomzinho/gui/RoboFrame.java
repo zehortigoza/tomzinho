@@ -17,7 +17,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,6 +36,8 @@ import javax.swing.filechooser.FileFilter;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.veris.tomzinho.Serial;
+import com.veris.tomzinho.SerialException;
 import com.veris.tomzinho.swing.JRaisedButton;
 
 /**
@@ -64,6 +65,8 @@ public class RoboFrame extends JFrame{
 	private JSlider l2Slider;
 	private JSlider l3Slider;
 	private JSlider l4Slider;
+	
+	private Serial SerialCom;
 	
 	/**
 	 * Constructor
@@ -103,6 +106,13 @@ public class RoboFrame extends JFrame{
 
 		this.getContentPane().add(new JScrollPane(mainPanel));
 		this.setVisible(true);
+		
+		try {
+			SerialCom = new Serial();
+		} catch (SerialException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private JPanel getControlPanel(){
@@ -285,7 +295,26 @@ public class RoboFrame extends JFrame{
 		});
 		
 		JRaisedButton write = new JRaisedButton("<HTML>WRITE</HTML>"); 
-		JRaisedButton commit = new JRaisedButton("<HTML>COMMIT</HTML>"); 
+		JRaisedButton commit = new JRaisedButton("<HTML>COMMIT</HTML>");
+		commit.onMouseClicked(new Runnable() {
+			@Override
+			public void run() {
+				StringBuffer sb = new StringBuffer();
+				sb.append("r1"+r1Slider.getValue());
+				sb.append(" r2"+r2Slider.getValue());
+				sb.append(" r3"+r3Slider.getValue());
+				sb.append(" r4"+r4Slider.getValue());
+				sb.append(" l1"+l1Slider.getValue());
+				sb.append(" l2"+l2Slider.getValue());
+				sb.append(" l3"+l3Slider.getValue());
+				sb.append(" l4"+l4Slider.getValue());
+				try {
+					SerialCom.write(sb.toString());
+				} catch (SerialException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 
 		DefaultFormBuilder builder = new DefaultFormBuilder(
 				new FormLayout("5dlu, pref:grow, 3dlu, pref:grow, 5dlu", 
