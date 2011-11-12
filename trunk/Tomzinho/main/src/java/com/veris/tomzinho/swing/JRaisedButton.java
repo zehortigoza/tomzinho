@@ -39,6 +39,7 @@ public class JRaisedButton extends JButton implements MouseListener {
      */
     private static final long serialVersionUID = 4120853256936306228L;
 	private boolean createBorder;
+	private Runnable r;
 
     /**
      * @see JButton#JButton()
@@ -160,6 +161,13 @@ public class JRaisedButton extends JButton implements MouseListener {
      * @see MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
     public void mouseClicked(MouseEvent e) {
+    	if(r != null) {
+    		new Thread(r).run();
+    	}    	
+    }
+    
+    public void onMouseClicked(Runnable runnable) {
+    	r = runnable;
     }
 
     /**
