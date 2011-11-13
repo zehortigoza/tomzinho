@@ -22,7 +22,7 @@ public class Serial {
 		if (osname.startsWith("windows")) {
 			DEFAULT_PORT = "COM1";
 		} else {
-			DEFAULT_PORT = "/dev/ttyUSB0";
+			DEFAULT_PORT = "/dev/ttyUSB1";
 		}
 	}
 
@@ -49,6 +49,7 @@ public class Serial {
 	}
 
 	public void close() throws SerialException {
+		System.out.println("Close connection with serial port");
 		try {
 			OutputToPort.close();
 		} catch (IOException e) {
