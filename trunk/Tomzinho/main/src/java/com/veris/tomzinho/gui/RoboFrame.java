@@ -81,7 +81,7 @@ public class RoboFrame extends JFrame{
 	
 	private File file;
 	
-	private Serial SerialCom;
+	private Serial serialCom;
 	
 	/**
 	 * Constructor
@@ -123,7 +123,7 @@ public class RoboFrame extends JFrame{
 		this.setVisible(true);
 		
 		try {
-			SerialCom = new Serial();
+			serialCom = new Serial();
 		} catch (SerialException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -328,7 +328,7 @@ public class RoboFrame extends JFrame{
 				sb.append(" l3" + reverseAngle(l3Slider.getValue()));
 				sb.append(" l4" + reverseAngle(l4Slider.getValue()));
 				try {
-					SerialCom.write(sb.toString());
+					serialCom.write(sb.toString());
 				} catch (SerialException e) {
 					e.printStackTrace();
 				}
@@ -464,7 +464,13 @@ public class RoboFrame extends JFrame{
 				if (reverseAngle)
 					value = reverseAngle(value);
 				
-				SerialCom.write(servo + value);
+				String toSerial = servo + value;
+				System.out.println(toSerial);
+				if (serialCom != null){
+					serialCom.write(toSerial);
+				}else {
+					System.out.println("Serial is not instatiate");
+				}
 			} catch (SerialException e1) {
 				e1.printStackTrace();
 			}
