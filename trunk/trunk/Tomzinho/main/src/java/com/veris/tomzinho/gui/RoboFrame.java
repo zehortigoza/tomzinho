@@ -62,6 +62,8 @@ public class RoboFrame extends JFrame{
 	private static final String L3 = "L3";
 	private static final String L4 = "L4";
 	
+	private static final int DELAY_BETWEEN_LINES = 1000 * 2;//2 seconds
+	
 	private static final int ROT_MIN = 0;
 	private static final int ROT_MAX = 180;
 
@@ -318,19 +320,35 @@ public class RoboFrame extends JFrame{
 		commit.onMouseClicked(new Runnable() {
 			@Override
 			public void run() {
-				StringBuffer sb = new StringBuffer();
-				sb.append("r1" + r1Slider.getValue());
-				sb.append(" r2" + reverseAngle(r2Slider.getValue()));
-				sb.append(" r3" + r3Slider.getValue());
-				sb.append(" r4" + r4Slider.getValue());
-				sb.append(" l1" + l1Slider.getValue());
-				sb.append(" l2" + l2Slider.getValue());
-				sb.append(" l3" + reverseAngle(l3Slider.getValue()));
-				sb.append(" l4" + reverseAngle(l4Slider.getValue()));
-				try {
-					serialCom.write(sb.toString());
-				} catch (SerialException e) {
-					e.printStackTrace();
+				if(serialCom != null && textArea.getText().length() > 0) {
+					String lines[] = textArea.getText().split("\r\n");
+					for(int i = 0; i<lines.length; i++) {
+						String commands[] = lines[i].split(" ");
+						StringBuffer commandLine = new StringBuffer();
+						for(int z = 0; z<commands.length; z++) {
+							if(commands[z].contains(R2)){
+								int pos = Integer.parseInt(commands[z].replace(R2,""));
+								commands[z] = R2.concat(""+reverseAngle(pos));
+							} else if(commands[z].contains(L3)){
+								int pos = Integer.parseInt(commands[z].replace(L3,""));
+								commands[z] = L3.concat(""+reverseAngle(pos));
+							} else if(commands[z].contains(R4)){
+								int pos = Integer.parseInt(commands[z].replace(R4,""));
+								commands[z] = R4.concat(""+reverseAngle(pos));
+							}
+									
+							if(z > 0){
+								commandLine.append(" ");
+							}
+							commandLine.append(commands[z]);
+						}
+						try {
+							serialCom.write(commandLine.toString());
+							Thread.sleep(DELAY_BETWEEN_LINES);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		});
@@ -341,15 +359,15 @@ public class RoboFrame extends JFrame{
 			public void run() {
 				StringBuilder sb = new StringBuilder();
 				if (textArea.getText().length() > 0)
-					sb.append("\n");
-				sb.append(r1Slider.getValue()).append(",");
-				sb.append(r2Slider.getValue()).append(",");
-				sb.append(r3Slider.getValue()).append(",");
-				sb.append(r4Slider.getValue()).append(",");
-				sb.append(l1Slider.getValue()).append(",");
-				sb.append(l2Slider.getValue()).append(",");
-				sb.append(l3Slider.getValue()).append(",");
-				sb.append(l4Slider.getValue());
+					sb.append("\r\n");
+				sb.append(R1).append(r1Slider.getValue()).append(" ");
+				sb.append(R2).append(r2Slider.getValue()).append(" ");
+				sb.append(R3).append(r3Slider.getValue()).append(" ");
+				sb.append(R4).append(r4Slider.getValue()).append(" ");				
+				sb.append(L1).append(l1Slider.getValue()).append(" ");
+				sb.append(L2).append(l2Slider.getValue()).append(" ");
+				sb.append(L3).append(l3Slider.getValue()).append(" ");
+				sb.append(L4).append(l4Slider.getValue()).append(" ");
 				textArea.append(sb.toString());
 				textArea.grabFocus();
 			}
