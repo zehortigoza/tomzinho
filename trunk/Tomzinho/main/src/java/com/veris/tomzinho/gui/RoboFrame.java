@@ -469,7 +469,7 @@ public class RoboFrame extends JFrame{
 				if (serialCom != null){
 					serialCom.write(toSerial);
 				}else {
-					System.out.println("Serial is not instatiate");
+					System.out.println("Serial is not instantiated");
 				}
 			} catch (SerialException e1) {
 				e1.printStackTrace();
