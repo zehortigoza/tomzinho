@@ -54,18 +54,22 @@ public class RoboFrame extends JFrame{
 	private static final long serialVersionUID = 1L;
 	
 	private static final String R1 = "R1";
+	private static final int R1_HOME_VALUE = 110;
 	private static final String R2 = "R2";
 	private static final String R3 = "R3";
 	private static final String R4 = "R4";
 	private static final String L1 = "L1";
+	private static final int L1_HOME_VALUE = 100;
 	private static final String L2 = "L2";
 	private static final String L3 = "L3";
 	private static final String L4 = "L4";
 	
-	private static final int DELAY_BETWEEN_LINES = 1000 * 2;//2 seconds
-	
 	private static final int ROT_MIN = 0;
 	private static final int ROT_MAX = 180;
+
+	private static int DEFAULT_HOME_VALUE = (ROT_MIN + ROT_MAX) / 2 + ROT_MIN;
+	
+	private static final int DELAY_BETWEEN_LINES = 1000 * 2;//2 seconds
 
 	private final CellConstraints cc = new CellConstraints();
 	private final FormLayout motorFormLayout = new FormLayout(
@@ -165,7 +169,7 @@ public class RoboFrame extends JFrame{
 	}
 
 	private JPanel getRightPanel(){
-		r1Slider = getSlider(110, R1);
+		r1Slider = getSlider(R1_HOME_VALUE, R1);
 		r2Slider = getSlider(R2);
 		r3Slider = getSlider(R3);
 		r4Slider = getSlider(R4);
@@ -184,7 +188,7 @@ public class RoboFrame extends JFrame{
 	}
 
 	private JPanel getLeftPanel(){
-		l1Slider = getSlider(100, L1);
+		l1Slider = getSlider(L1_HOME_VALUE, L1);
 		l2Slider = getSlider(L2);
 		l3Slider = getSlider(L3);
 		l4Slider = getSlider(L4);
@@ -202,7 +206,7 @@ public class RoboFrame extends JFrame{
 	}
 
 	private JSlider getSlider(String servo){
-		return getSlider(((ROT_MIN + ROT_MAX) / 2 ) + ROT_MIN, servo);
+		return getSlider(DEFAULT_HOME_VALUE, servo);
 	}
 
 	private JSlider getSlider(int pos, String servo){
@@ -224,7 +228,21 @@ public class RoboFrame extends JFrame{
 		JRaisedButton downButton = new JRaisedButton(getImageIcon("images/1downarrow.png"));
 		JRaisedButton leftButton = new JRaisedButton(getImageIcon("images/1leftarrow.png"));
 		JRaisedButton rightButton = new JRaisedButton(getImageIcon("images/1rightarrow.png"));
-
+		JRaisedButton homeButton = new JRaisedButton(getImageIcon("images/folder_home.png"));
+		homeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				r1Slider.setValue(R1_HOME_VALUE);
+				r2Slider.setValue(DEFAULT_HOME_VALUE);
+				r3Slider.setValue(DEFAULT_HOME_VALUE);
+				r4Slider.setValue(DEFAULT_HOME_VALUE);
+				l1Slider.setValue(L1_HOME_VALUE);
+				l2Slider.setValue(DEFAULT_HOME_VALUE);
+				l3Slider.setValue(DEFAULT_HOME_VALUE);
+				l4Slider.setValue(DEFAULT_HOME_VALUE);
+			}
+		});
+		
 		DefaultFormBuilder builder = new DefaultFormBuilder(
 				new FormLayout("pref, 3dlu, pref, 3dlu, pref", "pref, 3dlu, pref, 3dlu, pref"));
 
@@ -232,7 +250,8 @@ public class RoboFrame extends JFrame{
 		builder.add(downButton, cc.xy(3, 5)); 
 		builder.add(leftButton, cc.xy(1, 3)); 
 		builder.add(rightButton, cc.xy(5, 3)); 
-
+		builder.add(homeButton, cc.xy(3, 3));
+		
 		JPanel panel = builder.getPanel();
 		panel.setOpaque(false);
 		return panel;	
