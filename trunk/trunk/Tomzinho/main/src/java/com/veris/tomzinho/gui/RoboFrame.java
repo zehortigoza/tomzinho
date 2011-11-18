@@ -10,11 +10,17 @@
  */
 package com.veris.tomzinho.gui;
 
+import gnu.io.CommPortIdentifier;
+
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,13 +32,18 @@ import java.net.URL;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -69,8 +80,6 @@ public class RoboFrame extends JFrame{
 
 	private static int DEFAULT_HOME_VALUE = (ROT_MIN + ROT_MAX) / 2 + ROT_MIN;
 	
-	private static final int DELAY_BETWEEN_LINES = 1000 * 2;//2 seconds
-
 	private final CellConstraints cc = new CellConstraints();
 	private final FormLayout motorFormLayout = new FormLayout(
 			"5dlu, pref", "25dlu, pref, 35dlu, pref, 60dlu, pref, 50dlu, pref, 5dlu");
@@ -88,6 +97,10 @@ public class RoboFrame extends JFrame{
 	private File file;
 	
 	private Serial serialCom;
+
+	private int delay = 500;
+	
+	private boolean autoCap = false;
 	
 	/**
 	 * Constructor
@@ -96,7 +109,7 @@ public class RoboFrame extends JFrame{
 	public RoboFrame() {
 		super("Control Panel");
 
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		this.setSize(new Dimension(900, 680));
 		this.setLocationRelativeTo(null); // centraliza
@@ -105,17 +118,18 @@ public class RoboFrame extends JFrame{
 		this.setExtendedState(JFrame.ICONIFIED | this.getExtendedState());
 
 		DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-				"5dlu, pref, 5dlu, fill:pref:grow, 5dlu", "5dlu, top:pref"));
+				"5dlu, pref, 5dlu, fill:pref:grow, 5dlu", "5dlu, fill:pref:grow, 5dlu"));
 
 		builder.add(getControlPanel(), cc.xy(2, 2));
 
 		{
 			DefaultFormBuilder leftPanelBuilder = new DefaultFormBuilder(new FormLayout(
-					"fill:pref:grow", "fill:pref:grow, 5dlu, pref"));
+					"fill:pref:grow", "fill:pref:grow, 5dlu, fill:pref:grow, 5dlu, pref"));
 
 			leftPanelBuilder.add(getCamPanel(), cc.xy(1, 1));
 			leftPanelBuilder.add(getCommandLinePanel(), cc.xy(1, 3));
-
+			leftPanelBuilder.add(getSetupPanel(), cc.xy(1, 5));
+			
 			JPanel leftPanel = leftPanelBuilder.getPanel();		
 			leftPanel.setOpaque(false);
 			builder.add(leftPanel, cc.xy(4, 2));
@@ -138,7 +152,7 @@ public class RoboFrame extends JFrame{
 
 	private JPanel getControlPanel(){
 		DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-				"5dlu, right:pref:grow, 0dlu, center:pref, 0dlu, left:pref:grow, 5dlu", "top:pref, 5dlu, top:pref, 5dlu"));
+				"5dlu, right:pref:grow, 0dlu, center:pref, 0dlu, left:pref:grow, 5dlu", "top:pref, 5dlu, top:pref, 5dlu:grow"));
 
 		builder.add(getLeftPanel(), cc.xy(2, 1));
 		builder.add(getImageLabel(), cc.xy(4, 1));
@@ -232,19 +246,19 @@ public class RoboFrame extends JFrame{
 		homeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				r1Slider.setValue(R1_HOME_VALUE);
-				r2Slider.setValue(DEFAULT_HOME_VALUE);
-				r3Slider.setValue(DEFAULT_HOME_VALUE);
-				r4Slider.setValue(DEFAULT_HOME_VALUE);
-				l1Slider.setValue(L1_HOME_VALUE);
-				l2Slider.setValue(DEFAULT_HOME_VALUE);
-				l3Slider.setValue(DEFAULT_HOME_VALUE);
-				l4Slider.setValue(DEFAULT_HOME_VALUE);
+				r1Slider.setValue(0); r1Slider.setValue(R1_HOME_VALUE);
+				r2Slider.setValue(0); r2Slider.setValue(DEFAULT_HOME_VALUE);
+				r3Slider.setValue(0); r3Slider.setValue(DEFAULT_HOME_VALUE);
+				r4Slider.setValue(0); r4Slider.setValue(DEFAULT_HOME_VALUE);
+				l1Slider.setValue(0); l1Slider.setValue(L1_HOME_VALUE);
+				l2Slider.setValue(0); l2Slider.setValue(DEFAULT_HOME_VALUE);
+				l3Slider.setValue(0); l3Slider.setValue(DEFAULT_HOME_VALUE);
+				l4Slider.setValue(0); l4Slider.setValue(DEFAULT_HOME_VALUE);
 			}
 		});
 		
 		DefaultFormBuilder builder = new DefaultFormBuilder(
-				new FormLayout("pref, 3dlu, pref, 3dlu, pref", "pref, 3dlu, pref, 3dlu, pref"));
+				new FormLayout("pref, 5dlu, pref, 5dlu, pref", "pref, 5dlu, pref, 5dlu, pref"));
 
 		builder.add(upButton, cc.xy(3, 1)); 
 		builder.add(downButton, cc.xy(3, 5)); 
@@ -353,7 +367,7 @@ public class RoboFrame extends JFrame{
 								commands[z] = L3.concat(""+reverseAngle(pos));
 							} else if(commands[z].contains(R4)){
 								int pos = Integer.parseInt(commands[z].replace(R4,""));
-								commands[z] = R4.concat(""+reverseAngle(pos));
+								commands[z] = L4.concat(""+reverseAngle(pos));
 							}
 									
 							if(z > 0){
@@ -363,7 +377,7 @@ public class RoboFrame extends JFrame{
 						}
 						try {
 							serialCom.write(commandLine.toString());
-							Thread.sleep(DELAY_BETWEEN_LINES);
+							Thread.sleep(delay);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -376,25 +390,13 @@ public class RoboFrame extends JFrame{
 		capture.onMouseClicked(new Runnable() {
 			@Override
 			public void run() {
-				StringBuilder sb = new StringBuilder();
-				if (textArea.getText().length() > 0)
-					sb.append("\r\n");
-				sb.append(R1).append(r1Slider.getValue()).append(" ");
-				sb.append(R2).append(r2Slider.getValue()).append(" ");
-				sb.append(R3).append(r3Slider.getValue()).append(" ");
-				sb.append(R4).append(r4Slider.getValue()).append(" ");				
-				sb.append(L1).append(l1Slider.getValue()).append(" ");
-				sb.append(L2).append(l2Slider.getValue()).append(" ");
-				sb.append(L3).append(l3Slider.getValue()).append(" ");
-				sb.append(L4).append(l4Slider.getValue()).append(" ");
-				textArea.append(sb.toString());
-				textArea.grabFocus();
+				capture();
 			}
 		});
 		
 		DefaultFormBuilder builder = new DefaultFormBuilder(
 				new FormLayout("5dlu, fill:pref:grow, 3dlu, fill:pref:grow, 5dlu", 
-				"5dlu, pref:grow, 3dlu, pref:grow, 3dlu, pref:grow"));
+				"5dlu, pref:grow, 3dlu, pref:grow, 3dlu, pref:grow, 3dlu, pref:grow"));
 
 		builder.add(new JScrollPane(textArea), cc.xyw(2, 2, 3));
 		builder.add(open, cc.xy(2, 4));
@@ -406,6 +408,117 @@ public class RoboFrame extends JFrame{
 		panel.setBorder(BorderFactory.createTitledBorder(""));
 		panel.setOpaque(false);
 		return panel;
+	}
+
+	private JPanel getSetupPanel(){
+		JTextField delayComponent = new JTextField(delay + "");
+		delayComponent.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				try{
+					Integer newValue = new Integer(((JTextField)arg0.getSource()).getText());
+					delay = newValue.intValue();
+					System.out.println("new delay => " + delay);
+				}catch (NumberFormatException e) {
+					arg0.consume();
+				}
+			}
+		});
+		JLabel delayLabel = new JLabel("<HTML>DELAY </HTML>");
+		
+		JComboBox portCombo = new JComboBox(Serial.getPortList());
+		portCombo.setBackground(Color.WHITE);
+		portCombo.setFont(new Font("Dialog", Font.PLAIN, 12));
+		portCombo.setRenderer(new ListCellRenderer() {
+			@Override
+			public Component getListCellRendererComponent(JList arg0, Object arg1,
+					int arg2, boolean arg3, boolean arg4) {
+				if (arg1 == null) return new JLabel();
+				CommPortIdentifier port = (CommPortIdentifier) arg1;
+				JLabel label = new JLabel(" " + port.getName());
+				label.setFont(new Font("Dialog", Font.PLAIN, 12));
+				if (arg3) {
+					label.setBackground(arg0.getSelectionBackground());
+				}else {
+					label.setBackground(Color.WHITE);
+				}
+				
+				return label;
+			}
+		});
+		
+		portCombo.getModel().setSelectedItem(serialCom);
+		portCombo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					CommPortIdentifier port = 
+						(CommPortIdentifier) ((JComboBox)arg0.getSource()).getSelectedItem();
+					if (serialCom != null)
+						serialCom.switchPort(port);
+					else
+						serialCom = new Serial(port.getName());
+				} catch (SerialException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		JLabel portLabel = new JLabel("<HTML>PORT </HTML>");
+		
+		JCheckBox checkBox = new JCheckBox("<HTML>AUTO CAPTURE</HTML>");
+		checkBox.setOpaque(false);
+		checkBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				autoCap = ((JCheckBox) arg0.getSource()).isSelected();
+				System.out.println("auto capture property changed => " + autoCap);
+			}
+		});
+		
+		DefaultFormBuilder builder = new DefaultFormBuilder(
+				new FormLayout("5dlu, fill:pref, 3dlu, fill:pref:grow, " +
+						"5dlu, fill:pref, 3dlu, fill:pref:grow, 5dlu, fill:pref:grow, 5dlu", 
+				"5dlu, pref:grow, 5dlu"));
+
+		builder.add(delayLabel, cc.xy(2, 2));
+		builder.add(delayComponent, cc.xy(4, 2));
+		builder.add(portLabel, cc.xy(6, 2));
+		builder.add(portCombo, cc.xy(8, 2));
+		builder.add(checkBox, cc.xy(10, 2));
+		
+		JPanel panel = builder.getPanel();
+		panel.setBorder(BorderFactory.createTitledBorder(""));
+		panel.setOpaque(false);
+		return panel;
+	}
+	
+	private JPanel getCamPanel(){
+		DefaultFormBuilder builder = new DefaultFormBuilder(
+				new FormLayout("pref:grow", 
+				"fill:160dlu:grow"));
+		
+		JPanel panel = builder.getPanel();
+		panel.setBorder(BorderFactory.createTitledBorder(""));
+		panel.setOpaque(false);
+		return panel;
+	}
+	
+	private void capture() {
+		StringBuilder sb = new StringBuilder();
+		if (textArea.getText().length() > 0)
+			sb.append("\r\n");
+		sb.append(R1).append(r1Slider.getValue()).append(" ");
+		sb.append(R2).append(r2Slider.getValue()).append(" ");
+		sb.append(R3).append(r3Slider.getValue()).append(" ");
+		sb.append(R4).append(r4Slider.getValue()).append(" ");				
+		sb.append(L1).append(l1Slider.getValue()).append(" ");
+		sb.append(L2).append(l2Slider.getValue()).append(" ");
+		sb.append(L3).append(l3Slider.getValue()).append(" ");
+		sb.append(L4).append(l4Slider.getValue()).append(" ");
+		textArea.append(sb.toString());
+		textArea.grabFocus();
+			
 	}
 
 	private int reverseAngle(int angle) {
@@ -459,17 +572,6 @@ public class RoboFrame extends JFrame{
 		return fc;
 	}
 	
-	private JPanel getCamPanel(){
-		DefaultFormBuilder builder = new DefaultFormBuilder(
-				new FormLayout("pref:grow", 
-				"fill:188dlu:grow"));
-		
-		JPanel panel = builder.getPanel();
-		panel.setBorder(BorderFactory.createTitledBorder(""));
-		panel.setOpaque(false);
-		return panel;
-	}
-
 	private ImageIcon getImageIcon(String filePath){
 		URL imageUrl = Thread.currentThread().getContextClassLoader().getResource(filePath);
 		return new ImageIcon(imageUrl);
@@ -497,12 +599,17 @@ public class RoboFrame extends JFrame{
 		@Override
 		public void stateChanged(ChangeEvent e) {
 			try {
+				if (autoCap)
+					capture();
+				
 				int value = ((JSlider)e.getSource()).getValue();
 				if (reverseAngle)
 					value = reverseAngle(value);
 				
 				String toSerial = servo + value;
+
 				System.out.println(toSerial);
+				
 				if (serialCom != null){
 					serialCom.write(toSerial);
 				}else {
