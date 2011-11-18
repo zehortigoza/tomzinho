@@ -7,26 +7,34 @@ import gnu.io.UnsupportedCommOperationException;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import com.veris.tomzinho.SerialException.Error;
 
 public class Serial {
 	private static final String DEFAULT_PORT;
 
-	private SerialPort SerialCom;
+	private SerialPort serialCom;
 	private OutputStream OutputToPort;
 
 	static {
 		String osname = System.getProperty("os.name", "").toLowerCase();
 		if (osname.startsWith("windows")) {
-			DEFAULT_PORT = "COM1";
+			DEFAULT_PORT = "COM12";
 		} else {
 			DEFAULT_PORT = "/dev/ttyUSB1";
 		}
 	}
 
 	public static void main(String[] args) throws InterruptedException {
+		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+		while (portEnum.hasMoreElements()) {
+			CommPortIdentifier commPortIdentifier = (CommPortIdentifier) portEnum.nextElement();
+			System.out.println(commPortIdentifier.getName());
+		}
+		
 		try {
 			Serial s = new Serial();
 			Thread.sleep(2000);
@@ -39,7 +47,7 @@ public class Serial {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public Serial() throws SerialException {
 		this(DEFAULT_PORT);
 	}
@@ -47,7 +55,23 @@ public class Serial {
 	public Serial(String port) throws SerialException {
 		connect(port);
 	}
-
+	
+	public static Object[] getPortList(){
+		List<CommPortIdentifier> portList = new ArrayList<CommPortIdentifier>();
+		
+		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+		while (portEnum.hasMoreElements()) {
+			portList.add((CommPortIdentifier) portEnum.nextElement());
+		}
+		
+		return portList.toArray();
+	}
+	
+	public void switchPort(CommPortIdentifier port) throws SerialException{
+		close();
+		connect(port.getName());
+	}
+	
 	public void close() throws SerialException {
 		System.out.println("Close connection with serial port");
 		try {
@@ -55,7 +79,7 @@ public class Serial {
 		} catch (IOException e) {
 			throw new SerialException(Error.IO);
 		}
-		SerialCom.close();
+		serialCom.close();
 	}
 
 	public void write(String text) throws SerialException {
@@ -86,14 +110,16 @@ public class Serial {
 			}
 
 			System.out.println("Connecting to port: " + port);
-			SerialCom = (SerialPort) portId.open("TomzinhoUI", 3000);// identifier,
+			serialCom = (SerialPort) portId.open("TomzinhoUI", 3000);// identifier,
 																	// timeout
 
 			// set port parameters
-			SerialCom.setSerialPortParams(9600, SerialPort.DATABITS_8,
-					SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+			serialCom.setSerialPortParams(9600, 
+					SerialPort.DATABITS_8,
+					SerialPort.STOPBITS_1, 
+					SerialPort.PARITY_NONE);
 
-			OutputToPort = SerialCom.getOutputStream();
+			OutputToPort = serialCom.getOutputStream();
 		} catch (PortInUseException ex) {
 			throw new SerialException(Error.PORT_IN_USE);
 		} catch (UnsupportedCommOperationException ex) {
