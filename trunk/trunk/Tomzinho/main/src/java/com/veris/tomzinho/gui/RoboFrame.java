@@ -111,7 +111,7 @@ public class RoboFrame extends JFrame{
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		this.setSize(new Dimension(900, 680));
+		this.setSize(new Dimension(900, 680));//tamanho da janela
 		this.setLocationRelativeTo(null); // centraliza
 
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);  // maximiza
@@ -122,20 +122,18 @@ public class RoboFrame extends JFrame{
 
 		builder.add(getControlPanel(), cc.xy(2, 2));
 
-		{
-			DefaultFormBuilder leftPanelBuilder = new DefaultFormBuilder(new FormLayout(
-					"fill:pref:grow", "fill:pref:grow, 5dlu, fill:pref:grow, 5dlu, pref"));
+		
+		DefaultFormBuilder leftPanelBuilder = new DefaultFormBuilder(new FormLayout(
+				"fill:pref:grow", "fill:pref:grow, 5dlu, fill:pref:grow, 5dlu, pref"));
 
-			leftPanelBuilder.add(getCamPanel(), cc.xy(1, 1));
-			leftPanelBuilder.add(getCommandLinePanel(), cc.xy(1, 3));
-			leftPanelBuilder.add(getSetupPanel(), cc.xy(1, 5));
+		leftPanelBuilder.add(getCamPanel(), cc.xy(1, 1));
+		leftPanelBuilder.add(getCommandLinePanel(), cc.xy(1, 3));
+		leftPanelBuilder.add(getSetupPanel(), cc.xy(1, 5));
 			
-			JPanel leftPanel = leftPanelBuilder.getPanel();		
-			leftPanel.setOpaque(false);
-			builder.add(leftPanel, cc.xy(4, 2));
-		}
-
-
+		JPanel leftPanel = leftPanelBuilder.getPanel();		
+		leftPanel.setOpaque(false);
+		builder.add(leftPanel, cc.xy(4, 2));
+		
 		JPanel mainPanel = builder.getPanel();
 		mainPanel.setBackground(Color.WHITE);
 
@@ -222,30 +220,36 @@ public class RoboFrame extends JFrame{
 	private JSlider getSlider(String servo){
 		return getSlider(DEFAULT_HOME_VALUE, servo);
 	}
-
+	
+	/**
+	 * Instancia um slider
+	 * @param pos
+	 * @param servo
+	 * @return
+	 */
 	private JSlider getSlider(int pos, String servo){
 		JSlider slider = new JSlider(ROT_MIN, ROT_MAX);
 		slider.setOpaque(false);
 		//Turn on labels at major tick marks.
-		slider.setMajorTickSpacing(45);
-		slider.setMinorTickSpacing(5);
+		slider.setMajorTickSpacing(45);//coloca marcas grandes de 45 em 45 pontos
+		slider.setMinorTickSpacing(5);//marcas pequenas de 5 em 5 pontos
 		slider.setPaintTicks(true);
 		slider.setPaintLabels(true);
 		slider.setValue(pos);
-		slider.addChangeListener(new ServoChangeLister(servo));
+		slider.addChangeListener(new ServoChangeLister(servo));//cria a um servo lister para escutar as alterações no slider
 		return slider;
 	}
 	
 	private JPanel getDirectionPanel(){
 
-		JRaisedButton upButton = new JRaisedButton(getImageIcon("images/1uparrow.png")); 
+		JRaisedButton upButton = new JRaisedButton(getImageIcon("images/1uparrow.png")); //cria botão com a imagem
 		JRaisedButton downButton = new JRaisedButton(getImageIcon("images/1downarrow.png"));
 		JRaisedButton leftButton = new JRaisedButton(getImageIcon("images/1leftarrow.png"));
 		JRaisedButton rightButton = new JRaisedButton(getImageIcon("images/1rightarrow.png"));
 		JRaisedButton homeButton = new JRaisedButton(getImageIcon("images/folder_home.png"));
 		homeButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent arg0) {//quando botão home clicado altera as posições dos slider para a posição default
 				r1Slider.setValue(0); r1Slider.setValue(R1_HOME_VALUE);
 				r2Slider.setValue(0); r2Slider.setValue(DEFAULT_HOME_VALUE);
 				r3Slider.setValue(0); r3Slider.setValue(DEFAULT_HOME_VALUE);
@@ -278,19 +282,19 @@ public class RoboFrame extends JFrame{
 		JRaisedButton open = new JRaisedButton("<HTML>OPEN</HTML>"); 
 		open.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser fc = getFileChooser(JFileChooser.OPEN_DIALOG);
-				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					file = fc.getSelectedFile();
-					if (file.exists()) {
+			public void actionPerformed(ActionEvent arg0) {//quando clicado no botão de abrir
+				JFileChooser fc = getFileChooser(JFileChooser.OPEN_DIALOG);//abre caixa de procura e selação de arquivos
+				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {//se na caixa não foi cancelado
+					file = fc.getSelectedFile();//pega arquivo que o usuario selecionou
+					if (file.exists()) {//se o arquivo existir
 						try {
-							BufferedReader bis = new BufferedReader(new FileReader(file));
+							BufferedReader bis = new BufferedReader(new FileReader(file));//cria buffer de leitura
 							StringBuilder content = new StringBuilder("");
 							String  s;
 							while((s = bis.readLine()) != null){
-								content.append(s + "\r\n");
+								content.append(s + "\r\n");//concatena linha no StringBuilder content
 							}
-							textArea.setText(content.toString());
+							textArea.setText(content.toString());//depois de concatenado todas as linhas coloca essas linha na caixa de comandos
 							textArea.grabFocus();
 						} catch (FileNotFoundException e) {
 							// TODO Auto-generated catch block
@@ -299,7 +303,7 @@ public class RoboFrame extends JFrame{
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-					}else {
+					}else {//se arquivo não existir cria novo arquivo em branco
 						try {
 							file.createNewFile();
 						} catch (IOException e) {
@@ -316,23 +320,26 @@ public class RoboFrame extends JFrame{
 		write.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (file == null){
-					JFileChooser fc = getFileChooser(JFileChooser.SAVE_DIALOG);
-					if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-						file = fc.getSelectedFile();
-						if (!file.exists()) {
+				if (file == null) {//se não tiver nenhum arquivo já sendo usando pra gravar os comandos da caixa de comandos
+					JFileChooser fc = getFileChooser(JFileChooser.SAVE_DIALOG);//abre caixa de seleção de arquivos
+					if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {//se usuario não cancelou caixa de seleção de arquivos
+						file = fc.getSelectedFile();//pega arquivo selecionado
+						if (!file.exists()) {//se arquivo não existir
 							try {
-								file.createNewFile();
+								file.createNewFile();//cria novo arquivo
 								RoboFrame.this.setTitle("Control Panel - " + file.getAbsolutePath());
 							} catch (IOException ex) {
 								ex.printStackTrace();
 							}
 						}
-					}else return;
+					} else {
+						return;
+					}
 				}
 					
 				BufferedWriter writer = null;
 				try {
+					//esse bloco faz gravação do conteudo da caixa da comandos no arquivo
 					writer = new BufferedWriter(new FileWriter(file));
 					writer.write(textArea.getText());
 					writer.flush();
@@ -341,7 +348,7 @@ public class RoboFrame extends JFrame{
 				}finally{
 					if (writer != null)
 						try {
-							writer.close();
+							writer.close();//fecha arquivo
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -350,22 +357,22 @@ public class RoboFrame extends JFrame{
 		});
 		
 		JRaisedButton commit = new JRaisedButton("<HTML>COMMIT</HTML>");
-		commit.onMouseClicked(new Runnable() {
+		commit.onMouseClicked(new Runnable() {//seta ação a ser executada quando clicado no botão commit
 			@Override
 			public void run() {
-				if(serialCom != null && textArea.getText().length() > 0) {
-					String lines[] = textArea.getText().split("\r\n");
-					for(int i = 0; i<lines.length; i++) {
-						String commands[] = lines[i].split(" ");
-						StringBuffer commandLine = new StringBuffer();
-						for(int z = 0; z<commands.length; z++) {
-							if(commands[z].contains(R2)){
+				if(serialCom != null && textArea.getText().length() > 0) {//checa se existe conexão com serial e se caixa de comandos não esta vazia
+					String lines[] = textArea.getText().split("\r\n");//cada linha da caixa de comandos é colocado numa posição do array
+					for(int i = 0; i<lines.length; i++) {//corre por todas as posições do array de linhas
+						String commands[] = lines[i].split(" ");//cada comando da linha é colocado em uma posição do array
+						StringBuffer commandLine = new StringBuffer();//buffer de string consome menos memória do que concatenar strings
+						for(int z = 0; z<commands.length; z++) {//corre por todas as posições do array de comandos
+							if(commands[z].contains(R2)){//se comando for do motor R2 inverte seu angulo
 								int pos = Integer.parseInt(commands[z].replace(R2,""));
 								commands[z] = R2.concat(""+reverseAngle(pos));
-							} else if(commands[z].contains(L3)){
+							} else if(commands[z].contains(L3)){//se comando for do motor L3 inverte seu angulo
 								int pos = Integer.parseInt(commands[z].replace(L3,""));
 								commands[z] = L3.concat(""+reverseAngle(pos));
-							} else if(commands[z].contains(R4)){
+							} else if(commands[z].contains(R4)){//se comando for do motor R4 inverte seu angulo
 								int pos = Integer.parseInt(commands[z].replace(R4,""));
 								commands[z] = L4.concat(""+reverseAngle(pos));
 							}
@@ -373,11 +380,12 @@ public class RoboFrame extends JFrame{
 							if(z > 0){
 								commandLine.append(" ");
 							}
-							commandLine.append(commands[z]);
+							commandLine.append(commands[z]);//concatena comando na linha de comando a ser enviado
 						}
+						//nesse ponto toda linha de comando já foi concatenada na variavel commandLine
 						try {
-							serialCom.write(commandLine.toString());
-							Thread.sleep(delay);
+							serialCom.write(commandLine.toString());//envia comando para a porta serial
+							Thread.sleep(delay);//espera delay milisegundos antes de processar próxima linha de comando 
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -386,8 +394,8 @@ public class RoboFrame extends JFrame{
 			}
 		});
 
-		JRaisedButton capture = new JRaisedButton("<HTML>CAPTURE</HTML>");
-		capture.onMouseClicked(new Runnable() {
+		JRaisedButton capture = new JRaisedButton("<HTML>CAPTURE</HTML>");//botão de captura manual
+		capture.onMouseClicked(new Runnable() {//quando clicado executa o metodos capture
 			@Override
 			public void run() {
 				capture();
@@ -412,12 +420,11 @@ public class RoboFrame extends JFrame{
 
 	private JPanel getSetupPanel(){
 		JTextField delayComponent = new JTextField(delay + "");
-		delayComponent.addKeyListener(new KeyAdapter() {
+		delayComponent.addKeyListener(new KeyAdapter() {//quando um tecla é precisonada no campo de delay
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				try{
-					Integer newValue = new Integer(((JTextField)arg0.getSource()).getText());
-					delay = newValue.intValue();
+					delay = (int) new Integer(((JTextField)arg0.getSource()).getText());//transforma o a string no campo delay em int
 					System.out.println("new delay => " + delay);
 				}catch (NumberFormatException e) {
 					arg0.consume();
@@ -426,7 +433,7 @@ public class RoboFrame extends JFrame{
 		});
 		JLabel delayLabel = new JLabel("<HTML>DELAY </HTML>");
 		
-		JComboBox portCombo = new JComboBox(Serial.getPortList());
+		JComboBox portCombo = new JComboBox(Serial.getPortList());//caixa de seleção das portas seriais
 		portCombo.setBackground(Color.WHITE);
 		portCombo.setFont(new Font("Dialog", Font.PLAIN, 12));
 		portCombo.setRenderer(new ListCellRenderer() {
@@ -450,14 +457,13 @@ public class RoboFrame extends JFrame{
 		portCombo.getModel().setSelectedItem(serialCom);
 		portCombo.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent arg0) {//quando selecionado um item da caixa de seleção de portas
 				try {
 					CommPortIdentifier port = 
 						(CommPortIdentifier) ((JComboBox)arg0.getSource()).getSelectedItem();
-					if (serialCom != null)
-						serialCom.switchPort(port);
-					else
-						serialCom = new Serial(port.getName());
+					if (serialCom != null) {
+						serialCom.switchPort(port);//troca porta
+					}
 				} catch (SerialException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -466,12 +472,12 @@ public class RoboFrame extends JFrame{
 		});
 		JLabel portLabel = new JLabel("<HTML>PORT </HTML>");
 		
-		JCheckBox checkBox = new JCheckBox("<HTML>AUTO CAPTURE</HTML>");
+		JCheckBox checkBox = new JCheckBox("<HTML>AUTO CAPTURE</HTML>");//check box de auto captura
 		checkBox.setOpaque(false);
-		checkBox.addActionListener(new ActionListener() {
+		checkBox.addActionListener(new ActionListener() {//quando valor alterado
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				autoCap = ((JCheckBox) arg0.getSource()).isSelected();
+				autoCap = ((JCheckBox) arg0.getSource()).isSelected();//se estiver marcado liga função de auto capturar comandos
 				System.out.println("auto capture property changed => " + autoCap);
 			}
 		});
@@ -492,7 +498,10 @@ public class RoboFrame extends JFrame{
 		panel.setOpaque(false);
 		return panel;
 	}
-	
+	/**
+	 * Cria painel para camera
+	 * @return
+	 */
 	private JPanel getCamPanel(){
 		DefaultFormBuilder builder = new DefaultFormBuilder(
 				new FormLayout("pref:grow", 
@@ -504,6 +513,9 @@ public class RoboFrame extends JFrame{
 		return panel;
 	}
 	
+	/**
+	 * Pega os valores dos sliders e grava na lista de comandos
+	 */
 	private void capture() {
 		StringBuilder sb = new StringBuilder();
 		if (textArea.getText().length() > 0)
@@ -520,7 +532,12 @@ public class RoboFrame extends JFrame{
 		textArea.grabFocus();
 			
 	}
-
+	
+	/**
+	 * Faz a inversão de angulo, alguns motores precisam dessa inversão
+	 * @param angle
+	 * @return
+	 */
 	private int reverseAngle(int angle) {
 		int pointZero = (ROT_MIN + ROT_MAX) / 2;
 
@@ -535,36 +552,22 @@ public class RoboFrame extends JFrame{
 	
 		JFileChooser fc = new JFileChooser();
 		fc.setDialogType(dialogType);
-		fc.setFileFilter(new FileFilter() {
+		fc.setFileFilter(new FileFilter() {//aplica filtro de tipo de arquivo que pode ser aberto/salvo
 			@Override
 			public String getDescription() {
 				return ".csv";
 			}
 			
 			@Override
-			public boolean accept(File f) {
+			public boolean accept(File f) {//só aceita arquivos que terminarem com .csv
 				if (f != null) {
 					if (f.isDirectory()) {
 						return true;
 					}
-					String extension = getExtension(f);
-					if (extension != null && extension.equals("csv")) {
-						return true;
-					}
-					;
+					String filename = f.getName();
+					return filename.endsWith(".csv");					
 				}
 				return false;
-			}
-			
-			public String getExtension(File f) {
-				if (f != null) {
-					String filename = f.getName();
-					int i = filename.lastIndexOf('.');
-					if (i > 0 && i < filename.length() - 1) {
-						return filename.substring(i + 1).toLowerCase();
-					}
-				}
-				return null;
 			}
 		});
 		fc.setAcceptAllFileFilterUsed(false);
@@ -572,15 +575,30 @@ public class RoboFrame extends JFrame{
 		return fc;
 	}
 	
+	/**
+	 * Carrega imagem informado no filePath sincronicamente
+	 * @param filePath
+	 * @return
+	 */
 	private ImageIcon getImageIcon(String filePath){
 		URL imageUrl = Thread.currentThread().getContextClassLoader().getResource(filePath);
 		return new ImageIcon(imageUrl);
 	}
 	
+	/**
+	 * Função inicial do programao
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		new RoboFrame();
 	}
 
+	/**
+	 * Implementação da classe ChangeListener
+	 * Quando o valor de um slide for alterado ele executa o métodos stateChanged
+	 * @author zehortigoza
+	 *
+	 */
 	class ServoChangeLister implements ChangeListener{
 
 		private String servo;
@@ -599,19 +617,21 @@ public class RoboFrame extends JFrame{
 		@Override
 		public void stateChanged(ChangeEvent e) {
 			try {
-				if (autoCap)
+				if (autoCap) {//se a caixa de auto captura estiver selecionada salva o valor do slide na caixa de comandos
 					capture();
+				}
 				
 				int value = ((JSlider)e.getSource()).getValue();
-				if (reverseAngle)
+				if (reverseAngle) {//se este for um dos motores que precisa inverter angulo inverte
 					value = reverseAngle(value);
+				}
 				
 				String toSerial = servo + value;
 
 				System.out.println(toSerial);
 				
 				if (serialCom != null){
-					serialCom.write(toSerial);
+					serialCom.write(toSerial);//envia comando para serial
 				}else {
 					System.out.println("Serial is not instantiated");
 				}
